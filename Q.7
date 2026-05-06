@@ -1,0 +1,133 @@
+"""
+Question 7: Breadth-First Search (BFS)
+- Displays data stored in a graph using the BFS algorithm.
+- Shows traversal order level by level.
+- Works for both directed and undirected graphs.
+"""
+
+from collections import deque
+
+
+# ──────────────────────────────────────────────
+# BFS IMPLEMENTATION
+# ──────────────────────────────────────────────
+
+def bfs(graph, start):
+    """
+    Perform BFS traversal starting from `start`.
+    graph : dict  {node: [neighbors]}
+    Returns list of nodes in BFS order.
+    """
+    visited = set()
+    order   = []
+    queue   = deque([start])
+    visited.add(start)
+
+    print(f"\n{'─'*45}")
+    print(f"  BFS Traversal starting from node: {start}")
+    print(f"{'─'*45}")
+
+    level = 0
+    level_queue = deque([start])
+
+    while level_queue:
+        next_level = deque()
+        level_nodes = []
+        while level_queue:
+            node = level_queue.popleft()
+            level_nodes.append(node)
+            order.append(node)
+            for neighbor in graph.get(node, []):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    next_level.append(neighbor)
+        print(f"  Level {level}: {level_nodes}")
+        level_queue = next_level
+        level += 1
+
+    return order
+
+
+def bfs_path(graph, start, goal):
+    """
+    BFS to find the shortest path between start and goal.
+    Returns the path as a list, or None if no path exists.
+    """
+    visited = {start: None}   # node -> parent
+    queue   = deque([start])
+
+    while queue:
+        node = queue.popleft()
+        if node == goal:
+            # Reconstruct path
+            path = []
+            while node is not None:
+                path.append(node)
+                node = visited[node]
+            return path[::-1]
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                visited[neighbor] = node
+                queue.append(neighbor)
+    return None
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 50)
+print("    BREADTH-FIRST SEARCH (BFS) DEMO")
+print("=" * 50)
+
+# --- Graph 1: Undirected ---
+graph1 = {
+    0: [1, 2],
+    1: [0, 3, 4],
+    2: [0, 5, 6],
+    3: [1],
+    4: [1, 5],
+    5: [2, 4],
+    6: [2],
+}
+print("\nGraph 1 (Undirected):")
+print("  Adjacency List:", graph1)
+
+order1 = bfs(graph1, 0)
+print(f"\n  Full BFS order: {order1}")
+
+# --- Graph 2: Tree-like structure ---
+graph2 = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D', 'E'],
+    'C': ['A', 'F'],
+    'D': ['B'],
+    'E': ['B', 'F'],
+    'F': ['C', 'E'],
+}
+print("\nGraph 2 (Tree-like):")
+print("  Adjacency List:", graph2)
+
+order2 = bfs(graph2, 'A')
+print(f"\n  Full BFS order: {order2}")
+
+# --- Shortest path demo ---
+print("\n" + "=" * 50)
+print("  BFS SHORTEST PATH DEMO")
+print("=" * 50)
+
+graph3 = {
+    1: [2, 3],
+    2: [1, 4, 5],
+    3: [1, 6],
+    4: [2],
+    5: [2, 6],
+    6: [3, 5, 7],
+    7: [6],
+}
+print("\nGraph 3 (Adjacency List):", graph3)
+
+pairs = [(1, 7), (1, 4), (3, 5)]
+for src, dst in pairs:
+    path = bfs_path(graph3, src, dst)
+    print(f"  Shortest path {src} → {dst}: {path}  (length = {len(path)-1} edges)")
