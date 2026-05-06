@@ -1,0 +1,30 @@
+# Insertion Sort with comparison count
+
+def insertion_sort(arr):
+    comp = 0
+    
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        
+        while j >= 0:
+            comp += 1
+            if arr[j] > key:
+                arr[j + 1] = arr[j]
+                j -= 1
+            else:
+                break
+        
+        arr[j + 1] = key
+    
+    return arr, comp
+
+
+# Input
+n = int(input("Enter number of elements: "))
+arr = list(map(int, input("Enter elements: ").split()))
+
+sorted_arr, comparisons = insertion_sort(arr)
+
+print("Sorted array:", sorted_arr)
+print("Comparisons:", comparisons)
