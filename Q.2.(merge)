@@ -1,0 +1,47 @@
+# Merge Sort with comparison count
+
+def merge_sort(arr):
+    comp = 0
+    
+    if len(arr) > 1:
+        mid = len(arr) // 2
+        left = arr[:mid]
+        right = arr[mid:]
+        
+        left, c1 = merge_sort(left)
+        right, c2 = merge_sort(right)
+        
+        i = j = k = 0
+        comp = c1 + c2
+        
+        while i < len(left) and j < len(right):
+            comp += 1
+            if left[i] <= right[j]:
+                arr[k] = left[i]
+                i += 1
+            else:
+                arr[k] = right[j]
+                j += 1
+            k += 1
+        
+        while i < len(left):
+            arr[k] = left[i]
+            i += 1
+            k += 1
+        
+        while j < len(right):
+            arr[k] = right[j]
+            j += 1
+            k += 1
+    
+    return arr, comp
+
+
+# Input
+n = int(input("Enter number of elements: "))
+arr = list(map(int, input("Enter elements: ").split()))
+
+sorted_arr, comparisons = merge_sort(arr)
+
+print("Sorted array:", sorted_arr)
+print("Comparisons:", comparisons)
