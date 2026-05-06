@@ -1,0 +1,168 @@
+"""
+Question 8: Depth-First Search (DFS)
+- Displays data stored in a graph using the DFS algorithm.
+- Shows both iterative and recursive DFS.
+- Detects connected components and back edges (cycles).
+"""
+
+
+# ──────────────────────────────────────────────
+# DFS IMPLEMENTATION
+# ──────────────────────────────────────────────
+
+def dfs_iterative(graph, start):
+    """
+    Iterative DFS traversal starting from `start`.
+    graph : dict  {node: [neighbors]}
+    Returns list of nodes in DFS order.
+    """
+    visited = set()
+    order   = []
+    stack   = [start]
+
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            # Push neighbors in reverse so leftmost is processed first
+            for neighbor in reversed(graph.get(node, [])):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+
+    return order
+
+
+def dfs_recursive(graph, start, visited=None, order=None):
+    """
+    Recursive DFS traversal starting from `start`.
+    Returns list of nodes in DFS order.
+    """
+    if visited is None:
+        visited = set()
+    if order is None:
+        order = []
+
+    visited.add(start)
+    order.append(start)
+
+    for neighbor in graph.get(start, []):
+        if neighbor not in visited:
+            dfs_recursive(graph, neighbor, visited, order)
+
+    return order
+
+
+def dfs_all_components(graph):
+    """
+    DFS to find all connected components in the graph.
+    Returns list of components, each being a list of nodes.
+    """
+    visited    = set()
+    components = []
+
+    for node in graph:
+        if node not in visited:
+            component = []
+            stack = [node]
+            while stack:
+                n = stack.pop()
+                if n not in visited:
+                    visited.add(n)
+                    component.append(n)
+                    for neighbor in reversed(graph.get(n, [])):
+                        if neighbor not in visited:
+                            stack.append(neighbor)
+            components.append(component)
+
+    return components
+
+
+def dfs_has_cycle(graph):
+    """
+    Detect if an undirected graph has a cycle using DFS.
+    Returns True if cycle found, False otherwise.
+    """
+    visited = set()
+
+    def _dfs(node, parent):
+        visited.add(node)
+        for neighbor in graph.get(node, []):
+            if neighbor not in visited:
+                if _dfs(neighbor, node):
+                    return True
+            elif neighbor != parent:
+                return True   # back edge → cycle
+        return False
+
+    for node in graph:
+        if node not in visited:
+            if _dfs(node, None):
+                return True
+    return False
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 55)
+print("     DEPTH-FIRST SEARCH (DFS) DEMO")
+print("=" * 55)
+
+# --- Graph 1: Simple undirected ---
+graph1 = {
+    0: [1, 2],
+    1: [0, 3, 4],
+    2: [0, 5, 6],
+    3: [1],
+    4: [1, 5],
+    5: [2, 4],
+    6: [2],
+}
+print("\nGraph 1 (Undirected):")
+print(f"  Adjacency List: {graph1}")
+print(f"\n  DFS (iterative) from 0 : {dfs_iterative(graph1, 0)}")
+print(f"  DFS (recursive) from 0 : {dfs_recursive(graph1, 0)}")
+
+# --- Graph 2: Labeled nodes ---
+graph2 = {
+    'A': ['B', 'C'],
+    'B': ['A', 'D', 'E'],
+    'C': ['A', 'F'],
+    'D': ['B'],
+    'E': ['B', 'F'],
+    'F': ['C', 'E'],
+}
+print("\nGraph 2 (Labeled nodes):")
+print(f"  Adjacency List: {graph2}")
+print(f"\n  DFS (iterative) from A : {dfs_iterative(graph2, 'A')}")
+print(f"  DFS (recursive) from A : {dfs_recursive(graph2, 'A')}")
+
+# --- Connected components ---
+graph3 = {
+    1: [2, 3],
+    2: [1],
+    3: [1],
+    4: [5],
+    5: [4, 6],
+    6: [5],
+    7: [],
+}
+print("\nGraph 3 (Disconnected):")
+print(f"  Adjacency List: {graph3}")
+components = dfs_all_components(graph3)
+print(f"\n  Connected Components: {components}")
+print(f"  Number of components: {len(components)}")
+
+# --- Cycle detection ---
+graph_no_cycle  = {0: [1], 1: [0, 2], 2: [1, 3], 3: [2]}
+graph_has_cycle = {0: [1, 3], 1: [0, 2], 2: [1, 3], 3: [2, 0]}
+
+print("\n" + "=" * 55)
+print("  CYCLE DETECTION")
+print("=" * 55)
+print(f"\n  Graph (no cycle)  {graph_no_cycle}")
+print(f"  Has cycle: {dfs_has_cycle(graph_no_cycle)}")
+print(f"\n  Graph (has cycle) {graph_has_cycle}")
+print(f"  Has cycle: {dfs_has_cycle(graph_has_cycle)}")
