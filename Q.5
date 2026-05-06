@@ -1,0 +1,170 @@
+"""
+Question 5: Strassen's Algorithm for Matrix Multiplication
+- Multiplies two matrices using Strassen's divide-and-conquer method.
+- Works for any square matrices (pads to next power of 2 internally).
+"""
+
+
+# ──────────────────────────────────────────────
+# HELPER FUNCTIONS
+# ──────────────────────────────────────────────
+
+def mat_add(A, B):
+    n = len(A)
+    return [[A[i][j] + B[i][j] for j in range(n)] for i in range(n)]
+
+def mat_sub(A, B):
+    n = len(A)
+    return [[A[i][j] - B[i][j] for j in range(n)] for i in range(n)]
+
+def mat_print(M, name="Matrix"):
+    print(f"\n{name}:")
+    for row in M:
+        print("  " + "  ".join(f"{x:6}" for x in row))
+
+
+# ──────────────────────────────────────────────
+# STRASSEN'S ALGORITHM
+# ──────────────────────────────────────────────
+
+def strassen(A, B):
+    """
+    Multiply two n×n matrices using Strassen's algorithm.
+    n must be a power of 2 (use strassen_multiply for arbitrary sizes).
+    """
+    n = len(A)
+
+    # Base case
+    if n == 1:
+        return [[A[0][0] * B[0][0]]]
+
+    mid = n // 2
+
+    # Split matrices into quadrants
+    def split(M):
+        top_left     = [row[:mid] for row in M[:mid]]
+        top_right    = [row[mid:] for row in M[:mid]]
+        bottom_left  = [row[:mid] for row in M[mid:]]
+        bottom_right = [row[mid:] for row in M[mid:]]
+        return top_left, top_right, bottom_left, bottom_right
+
+    a, b, c, d = split(A)
+    e, f, g, h = split(B)
+
+    # 7 Strassen products (instead of 8 in naive)
+    p1 = strassen(a,           mat_sub(f, h))   # a(f-h)
+    p2 = strassen(mat_add(a, b), h)             # (a+b)h
+    p3 = strassen(mat_add(c, d), e)             # (c+d)e
+    p4 = strassen(d,           mat_sub(g, e))   # d(g-e)
+    p5 = strassen(mat_add(a, d), mat_add(e, h)) # (a+d)(e+h)
+    p6 = strassen(mat_sub(b, d), mat_add(g, h)) # (b-d)(g+h)
+    p7 = strassen(mat_sub(a, c), mat_add(e, f)) # (a-c)(e+f)
+
+    # Combine quadrants
+    c11 = mat_add(mat_sub(mat_add(p5, p4), p2), p6)
+    c12 = mat_add(p1, p2)
+    c21 = mat_add(p3, p4)
+    c22 = mat_sub(mat_sub(mat_add(p5, p1), p3), p7)
+
+    # Merge quadrants into result
+    result = [[0] * n for _ in range(n)]
+    for i in range(mid):
+        for j in range(mid):
+            result[i][j]             = c11[i][j]
+            result[i][j + mid]       = c12[i][j]
+            result[i + mid][j]       = c21[i][j]
+            result[i + mid][j + mid] = c22[i][j]
+
+    return result
+
+
+def strassen_multiply(A, B):
+    """
+    Multiply two square matrices of any size using Strassen's algorithm.
+    Pads to next power of 2 if needed, then trims result.
+    """
+    n = len(A)
+    # Find next power of 2
+    size = 1
+    while size < n:
+        size *= 2
+
+    # Pad matrices with zeros
+    def pad(M):
+        padded = [row + [0] * (size - n) for row in M]
+        for _ in range(size - n):
+            padded.append([0] * size)
+        return padded
+
+    result_padded = strassen(pad(A), pad(B))
+
+    # Trim back to original size
+    return [row[:n] for row in result_padded[:n]]
+
+
+def standard_multiply(A, B):
+    """Standard O(n³) matrix multiplication for verification."""
+    n = len(A)
+    C = [[0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                C[i][j] += A[i][k] * B[k][j]
+    return C
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 55)
+print("     STRASSEN'S MATRIX MULTIPLICATION DEMO")
+print("=" * 55)
+
+# --- 2×2 Example ---
+print("\n--- Example 1: 2×2 Matrices ---")
+A = [[1, 2],
+     [3, 4]]
+B = [[5, 6],
+     [7, 8]]
+mat_print(A, "A")
+mat_print(B, "B")
+C_strassen  = strassen_multiply(A, B)
+C_standard  = standard_multiply(A, B)
+mat_print(C_strassen, "Result (Strassen)")
+mat_print(C_standard, "Result (Standard — verification)")
+print(f"\nMatch: {C_strassen == C_standard}")
+
+# --- 4×4 Example ---
+print("\n--- Example 2: 4×4 Matrices ---")
+A4 = [[1, 2, 3, 4],
+      [5, 6, 7, 8],
+      [9, 1, 2, 3],
+      [4, 5, 6, 7]]
+B4 = [[7, 6, 5, 4],
+      [3, 2, 1, 9],
+      [8, 7, 6, 5],
+      [4, 3, 2, 1]]
+mat_print(A4, "A")
+mat_print(B4, "B")
+C4_strassen = strassen_multiply(A4, B4)
+C4_standard = standard_multiply(A4, B4)
+mat_print(C4_strassen, "Result (Strassen)")
+mat_print(C4_standard, "Result (Standard — verification)")
+print(f"\nMatch: {C4_strassen == C4_standard}")
+
+# --- 3×3 Example (non-power-of-2) ---
+print("\n--- Example 3: 3×3 Matrices (non-power-of-2, uses padding) ---")
+A3 = [[1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9]]
+B3 = [[9, 8, 7],
+      [6, 5, 4],
+      [3, 2, 1]]
+mat_print(A3, "A")
+mat_print(B3, "B")
+C3_strassen = strassen_multiply(A3, B3)
+C3_standard = standard_multiply(A3, B3)
+mat_print(C3_strassen, "Result (Strassen)")
+mat_print(C3_standard, "Result (Standard — verification)")
+print(f"\nMatch: {C3_strassen == C3_standard}")
