@@ -1,0 +1,137 @@
+"""
+Question 9: Prim's Algorithm — Minimum Spanning Tree
+- Finds the MST of a weighted undirected graph.
+- Uses a min-heap (priority queue) for efficiency: O((V + E) log V).
+- Displays the MST edges and total cost.
+"""
+
+import heapq
+
+
+# ──────────────────────────────────────────────
+# PRIM'S ALGORITHM
+# ──────────────────────────────────────────────
+
+def prim_mst(graph, start=None):
+    """
+    Find the Minimum Spanning Tree using Prim's Algorithm.
+
+    Parameters:
+        graph : dict  {node: [(neighbor, weight), ...]}
+        start : starting node (default: first key in graph)
+
+    Returns:
+        mst_edges  : list of (u, v, weight) — edges in the MST
+        total_cost : total weight of the MST
+    """
+    if not graph:
+        return [], 0
+
+    if start is None:
+        start = next(iter(graph))
+
+    visited    = {start}
+    min_heap   = []           # (weight, from_node, to_node)
+    mst_edges  = []
+    total_cost = 0
+
+    # Add all edges from start node into the heap
+    for neighbor, weight in graph.get(start, []):
+        heapq.heappush(min_heap, (weight, start, neighbor))
+
+    print(f"\n  Starting from node: {start}")
+    print(f"  {'Step':<6} {'Edge':<15} {'Weight':<8} {'Total Cost'}")
+    print(f"  {'─'*45}")
+    step = 1
+
+    while min_heap:
+        weight, u, v = heapq.heappop(min_heap)
+
+        if v in visited:
+            continue   # Skip — already in MST
+
+        # Add this edge to MST
+        visited.add(v)
+        mst_edges.append((u, v, weight))
+        total_cost += weight
+        print(f"  {step:<6} {str(u)+'─'+str(v):<15} {weight:<8} {total_cost}")
+        step += 1
+
+        # Push edges from newly added node
+        for neighbor, w in graph.get(v, []):
+            if neighbor not in visited:
+                heapq.heappush(min_heap, (w, v, neighbor))
+
+    return mst_edges, total_cost
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 55)
+print("    PRIM'S MINIMUM SPANNING TREE DEMO")
+print("=" * 55)
+
+# --- Graph 1: Classic example ---
+#
+#    A --2-- B
+#    |  \    |  \
+#    3    6  1    4
+#    |      \|    |
+#    C --5-- D --3-- E
+#
+graph1 = {
+    'A': [('B', 2), ('C', 3), ('D', 6)],
+    'B': [('A', 2), ('D', 1), ('E', 4)],
+    'C': [('A', 3), ('D', 5)],
+    'D': [('A', 6), ('B', 1), ('C', 5), ('E', 3)],
+    'E': [('B', 4), ('D', 3)],
+}
+
+print("\nGraph 1:")
+print("  Adjacency List:")
+for node, edges in graph1.items():
+    print(f"    {node}: {edges}")
+
+mst1, cost1 = prim_mst(graph1, 'A')
+print(f"\n  MST Edges : {mst1}")
+print(f"  Total Cost: {cost1}")
+
+# --- Graph 2: Numeric nodes ---
+#
+#  0 --4-- 1 --8-- 2
+#  |       |       |
+#  11      7       2
+#  |       |       |
+#  7 --1-- 6 --6-- 5 --10-- 3
+#          |               /
+#          2             14
+#          |             /
+#          8 -----9---- 4
+#
+graph2 = {
+    0: [(1, 4), (7, 8)],
+    1: [(0, 4), (2, 8), (7, 11)],
+    2: [(1, 8), (3, 7), (5, 4), (8, 2)],
+    3: [(2, 7), (4, 9), (5, 14)],
+    4: [(3, 9), (5, 10)],
+    5: [(2, 4), (3, 14), (4, 10), (6, 2)],
+    6: [(5, 2), (7, 1), (8, 6)],
+    7: [(0, 8), (1, 11), (6, 1), (8, 7)],
+    8: [(2, 2), (6, 6), (7, 7)],
+}
+
+print("\nGraph 2 (9-node graph):")
+print("  Adjacency List:")
+for node, edges in graph2.items():
+    print(f"    {node}: {edges}")
+
+mst2, cost2 = prim_mst(graph2, 0)
+print(f"\n  MST Edges : {mst2}")
+print(f"  Total Cost: {cost2}")
+print(f"\n  Expected MST cost for this graph: 37")
+
+# --- Verify: MST has V-1 edges ---
+V = len(graph2)
+print(f"\n  Nodes: {V}, MST edges: {len(mst2)}  (should be {V-1})")
