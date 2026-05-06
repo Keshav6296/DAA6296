@@ -1,0 +1,186 @@
+"""
+Question 10: Dijkstra's Shortest Path Algorithm
+- Finds shortest distances from a given source node to all other nodes.
+- Uses a min-heap priority queue: O((V + E) log V).
+- Displays distances and reconstructed paths.
+"""
+
+import heapq
+
+
+# ──────────────────────────────────────────────
+# DIJKSTRA'S ALGORITHM
+# ──────────────────────────────────────────────
+
+def dijkstra(graph, source):
+    """
+    Find shortest paths from `source` to all reachable nodes.
+
+    Parameters:
+        graph  : dict  {node: [(neighbor, weight), ...]}
+        source : the starting node
+
+    Returns:
+        dist : dict  {node: shortest_distance_from_source}
+        prev : dict  {node: previous_node_in_shortest_path}
+    """
+    # Initialize distances as infinity
+    dist = {node: float('inf') for node in graph}
+    prev = {node: None for node in graph}
+    dist[source] = 0
+
+    # Min-heap: (distance, node)
+    min_heap = [(0, source)]
+
+    visited = set()
+
+    while min_heap:
+        d, u = heapq.heappop(min_heap)
+
+        if u in visited:
+            continue
+        visited.add(u)
+
+        for v, weight in graph.get(u, []):
+            alt = dist[u] + weight
+            if alt < dist[v]:
+                dist[v] = alt
+                prev[v] = u
+                heapq.heappush(min_heap, (alt, v))
+
+    return dist, prev
+
+
+def reconstruct_path(prev, source, target):
+    """Reconstruct the shortest path from source to target using prev map."""
+    path = []
+    node = target
+    while node is not None:
+        path.append(node)
+        node = prev[node]
+    path.reverse()
+    if path[0] == source:
+        return path
+    return []   # No path exists
+
+
+def print_all_paths(graph, source):
+    """Run Dijkstra and print shortest distances + paths to all nodes."""
+    dist, prev = dijkstra(graph, source)
+
+    print(f"\n  Shortest paths from source: '{source}'")
+    print(f"\n  {'Destination':<14} {'Distance':<12} {'Path'}")
+    print(f"  {'─'*55}")
+
+    for node in sorted(dist.keys(), key=str):
+        if node == source:
+            continue
+        d = dist[node]
+        if d == float('inf'):
+            print(f"  {str(node):<14} {'∞':<12} No path")
+        else:
+            path = reconstruct_path(prev, source, node)
+            path_str = " → ".join(str(p) for p in path)
+            print(f"  {str(node):<14} {d:<12} {path_str}")
+
+    return dist, prev
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 60)
+print("    DIJKSTRA'S SHORTEST PATH ALGORITHM DEMO")
+print("=" * 60)
+
+# --- Graph 1: Classic small graph ---
+#
+#     A --1-- B --4-- D
+#      \      |      /
+#       2     3     1
+#        \    |    /
+#         C------E
+#             2
+#
+graph1 = {
+    'A': [('B', 1), ('C', 2)],
+    'B': [('A', 1), ('C', 3), ('D', 4)],
+    'C': [('A', 2), ('B', 3), ('E', 2)],
+    'D': [('B', 4), ('E', 1)],
+    'E': [('C', 2), ('D', 1)],
+}
+
+print("\nGraph 1:")
+print("  Adjacency List:")
+for node, edges in graph1.items():
+    print(f"    {node}: {edges}")
+
+print_all_paths(graph1, 'A')
+
+# --- Graph 2: Larger numeric graph ---
+graph2 = {
+    0: [(1, 4),  (2, 1)],
+    1: [(0, 4),  (2, 2), (3, 5)],
+    2: [(0, 1),  (1, 2), (3, 8), (4, 10)],
+    3: [(1, 5),  (2, 8), (4, 2),  (5, 6)],
+    4: [(2, 10), (3, 2), (5, 3)],
+    5: [(3, 6),  (4, 3)],
+}
+
+print("\n" + "=" * 60)
+print("Graph 2 (Numeric nodes):")
+print("  Adjacency List:")
+for node, edges in graph2.items():
+    print(f"    {node}: {edges}")
+
+print_all_paths(graph2, 0)
+
+# --- Graph with unreachable nodes ---
+graph3 = {
+    'X': [('Y', 5)],
+    'Y': [('X', 5)],
+    'Z': [],     # isolated
+    'W': [],     # isolated
+}
+
+print("\n" + "=" * 60)
+print("Graph 3 (with unreachable nodes):")
+print_all_paths(graph3, 'X')
+
+# --- Step-by-step trace for Graph 1 ---
+print("\n" + "=" * 60)
+print("  STEP-BY-STEP TRACE — Graph 1 from A")
+print("=" * 60)
+
+class DebugDijkstra:
+    def run(self, graph, source):
+        dist = {node: float('inf') for node in graph}
+        prev = {node: None for node in graph}
+        dist[source] = 0
+        heap = [(0, source)]
+        visited = set()
+        step = 1
+
+        print(f"\n  {'Step':<6} {'Node':<8} {'Dist':<8} {'Via':<8} {'Updated Nodes'}")
+        print(f"  {'─'*55}")
+
+        while heap:
+            d, u = heapq.heappop(heap)
+            if u in visited:
+                continue
+            visited.add(u)
+            updates = []
+            for v, w in graph.get(u, []):
+                alt = dist[u] + w
+                if alt < dist[v]:
+                    dist[v] = alt
+                    prev[v] = u
+                    heapq.heappush(heap, (alt, v))
+                    updates.append(f"{v}={alt}")
+            print(f"  {step:<6} {str(u):<8} {d:<8} {str(prev[u]):<8} {', '.join(updates) if updates else '—'}")
+            step += 1
+
+        return dist, prev
+
+DebugDijkstra().run(graph1, 'A')
