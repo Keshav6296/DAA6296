@@ -1,0 +1,87 @@
+"""
+Question 6: Count Sort
+- Sorts an array of non-negative integers using the Counting Sort algorithm.
+- Time complexity: O(n + k) where k is the range of input values.
+- Space complexity: O(n + k)
+"""
+
+
+# ──────────────────────────────────────────────
+# COUNT SORT
+# ──────────────────────────────────────────────
+
+def count_sort(arr):
+    """
+    Sort a list of non-negative integers using Count Sort.
+    Returns the sorted array.
+    Steps:
+      1. Find the maximum value in arr.
+      2. Create a count array of size (max + 1).
+      3. Count the frequency of each element.
+      4. Reconstruct the sorted array from the count array.
+    """
+    if not arr:
+        return []
+
+    max_val = max(arr)
+
+    # Step 1: Count occurrences
+    count = [0] * (max_val + 1)
+    for x in arr:
+        count[x] += 1
+
+    print(f"\nCount array (index = value, value = frequency):")
+    for i, c in enumerate(count):
+        if c > 0:
+            print(f"  count[{i}] = {c}")
+
+    # Step 2: Build sorted output
+    sorted_arr = []
+    for i, c in enumerate(count):
+        sorted_arr.extend([i] * c)
+
+    return sorted_arr
+
+
+# ──────────────────────────────────────────────
+# DEMO
+# ──────────────────────────────────────────────
+
+print("=" * 50)
+print("          COUNT SORT DEMO")
+print("=" * 50)
+
+# --- Example 1: Small array ---
+arr1 = [4, 2, 2, 8, 3, 3, 1, 7, 0, 5]
+print(f"\nOriginal array : {arr1}")
+sorted1 = count_sort(arr1)
+print(f"Sorted array   : {sorted1}")
+
+# --- Example 2: Larger array with repeated values ---
+import random
+arr2 = [random.randint(0, 20) for _ in range(30)]
+print(f"\n{'─'*45}")
+print(f"Original array : {arr2}")
+sorted2 = count_sort(arr2)
+print(f"Sorted array   : {sorted2}")
+
+# --- Verify correctness ---
+print(f"\n{'─'*45}")
+print(f"Verification (matches Python's built-in sort): {sorted2 == sorted(arr2)}")
+
+# --- Show step-by-step trace for a small example ---
+print(f"\n{'─'*45}")
+print("Step-by-step trace for [3, 1, 4, 1, 5, 9, 2, 6, 5]:")
+trace_arr = [3, 1, 4, 1, 5, 9, 2, 6, 5]
+print(f"  Input         : {trace_arr}")
+max_v = max(trace_arr)
+cnt = [0] * (max_v + 1)
+for x in trace_arr:
+    cnt[x] += 1
+print(f"  Count array   : {cnt}")
+cumulative = cnt[:]
+for i in range(1, len(cumulative)):
+    cumulative[i] += cumulative[i - 1]
+print(f"  Cumulative    : {cumulative}")
+result = count_sort(trace_arr)
+print(f"  Sorted output : {result}")
